@@ -41,10 +41,11 @@ public final class Weapons extends JavaPlugin {
 
         registerLance();
         registerBattleAxe();
+        registerMace();
+        registerSpear();
 
         // For the texture pack
         this.getServer().getPluginManager().registerEvents(new JoinEvent(), this);
-
     }
 
     @Override
@@ -67,6 +68,82 @@ public final class Weapons extends JavaPlugin {
                 "\n" +
                 "Has stopped!");
     }
+
+    private void registerSpear() {
+        ItemStack spear = getSpearIS();
+        Bukkit.addRecipe(getSpearRecipe(spear));
+    }
+
+    private ShapedRecipe getSpearRecipe(ItemStack spear) {
+        NamespacedKey key = new NamespacedKey(this, "spear");
+        ShapedRecipe recipe = new ShapedRecipe(key, spear);
+        recipe.shape(" I ",
+                     " S ",
+                     " S ");
+        recipe.setIngredient('I', Material.IRON_NUGGET);
+        recipe.setIngredient('S', Material.STICK);
+
+        return recipe;
+    }
+
+    private ItemStack getSpearIS() {
+        ItemStack spear = new ItemStack(Material.TRIDENT);
+        ItemMeta meta = spear.getItemMeta();
+        meta.setDisplayName("Spear");
+        meta.setCustomModelData(6418891);
+
+        spear.setItemMeta(meta);
+        return spear;
+    }
+
+    private void registerMace() {
+        ItemStack mace = getMaceIS();
+        Bukkit.addRecipe(getMaceRecipe(mace));
+
+        this.getServer().getPluginManager().registerEvents(new Mace(mace), this);
+    }
+
+    private ShapedRecipe getMaceRecipe(ItemStack mace) {
+        NamespacedKey key = new NamespacedKey(this, "mace");
+        ShapedRecipe recipe = new ShapedRecipe(key, mace);
+        recipe.shape(" II",
+                     " II",
+                     "S  ");
+        recipe.setIngredient('I', Material.IRON_INGOT);
+        recipe.setIngredient('S', Material.STICK);
+
+        return recipe;
+    }
+
+    private ItemStack getMaceIS() {
+        ItemStack mace = new ItemStack(Material.IRON_SWORD);
+        ItemMeta meta = mace.getItemMeta();
+        meta.setDisplayName("Mace");
+        meta.setCustomModelData(1310418);
+        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_SPEED,
+                new AttributeModifier(UUID.randomUUID(),
+                        "generic.attackSpeed", -3,
+                        AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND));
+
+        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+                new AttributeModifier(UUID.randomUUID(),
+                        "generic.attackDamage", 7,
+                        AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND));
+
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+
+        List<String> lore = new ArrayList<>();
+        lore.add("When in main hand:");
+        lore.add("1 Attack Speed");
+        lore.add("8 Attack Damage");
+        lore.add("Stuns and gives nausea to enemy for 3 seconds");
+
+        meta.setLore(lore);
+
+        mace.setItemMeta(meta);
+        return mace;
+    }
+
 
     private void registerBattleAxe() {
         ItemStack battleAxe = getBattleAxeIS();
@@ -97,7 +174,7 @@ public final class Weapons extends JavaPlugin {
 
         meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
                 new AttributeModifier(UUID.randomUUID(),
-                        "generic.attackDamage", 14,
+                        "generic.attackDamage", 13,
                         AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND));
 
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
