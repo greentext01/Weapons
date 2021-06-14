@@ -42,7 +42,6 @@ public final class Weapons extends JavaPlugin {
         registerLance();
         registerBattleAxe();
         registerMace();
-        registerSpear();
 
         // For the texture pack
         this.getServer().getPluginManager().registerEvents(new JoinEvent(), this);
@@ -69,31 +68,53 @@ public final class Weapons extends JavaPlugin {
                 "Has stopped!");
     }
 
-    private void registerSpear() {
-        ItemStack spear = getSpearIS();
-        Bukkit.addRecipe(getSpearRecipe(spear));
+    private void registerArmorPiercing() {
+        ItemStack armorP = getArmorPiercingIS();
+        Bukkit.addRecipe(getArmorPiercingRecipe(armorP));
+
+        this.getServer().getPluginManager().registerEvents(new ArmorPiercing(armorP), this);
     }
 
-    private ShapedRecipe getSpearRecipe(ItemStack spear) {
-        NamespacedKey key = new NamespacedKey(this, "spear");
-        ShapedRecipe recipe = new ShapedRecipe(key, spear);
+    private ShapedRecipe getArmorPiercingRecipe(ItemStack armorP) {
+        NamespacedKey key = new NamespacedKey(this, "armorP");
+        ShapedRecipe recipe = new ShapedRecipe(key, armorP);
         recipe.shape(" I ",
                      " S ",
-                     " S ");
-        recipe.setIngredient('I', Material.IRON_NUGGET);
+                     " F ");
+        recipe.setIngredient('I', Material.IRON_INGOT);
         recipe.setIngredient('S', Material.STICK);
+        recipe.setIngredient('F', Material.FEATHER);
 
         return recipe;
     }
 
-    private ItemStack getSpearIS() {
-        ItemStack spear = new ItemStack(Material.TRIDENT);
-        ItemMeta meta = spear.getItemMeta();
-        meta.setDisplayName("Spear");
-        meta.setCustomModelData(6418891);
+    private ItemStack getArmorPiercingIS() {
+        ItemStack armorP = new ItemStack(Material.ARROW);
+        ItemMeta meta = armorP.getItemMeta();
+        meta.setDisplayName("Mace");
+        meta.setCustomModelData(1310418);
+        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_SPEED,
+                new AttributeModifier(UUID.randomUUID(),
+                        "generic.attackSpeed", -3,
+                        AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND));
 
-        spear.setItemMeta(meta);
-        return spear;
+        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+                new AttributeModifier(UUID.randomUUID(),
+                        "generic.attackDamage", 7,
+                        AttributeModifier.Operation.ADD_NUMBER, EquipmentSlot.HAND));
+
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+
+        List<String> lore = new ArrayList<>();
+        lore.add("When in main hand:");
+        lore.add("1 Attack Speed");
+        lore.add("8 Attack Damage");
+        lore.add("Stuns and gives nausea to enemy for 3 seconds");
+
+        meta.setLore(lore);
+
+        armorP.setItemMeta(meta);
+        return armorP;
     }
 
     private void registerMace() {
@@ -106,10 +127,10 @@ public final class Weapons extends JavaPlugin {
     private ShapedRecipe getMaceRecipe(ItemStack mace) {
         NamespacedKey key = new NamespacedKey(this, "mace");
         ShapedRecipe recipe = new ShapedRecipe(key, mace);
-        recipe.shape(" II",
-                     " II",
+        recipe.shape("  I",
+                     " S ",
                      "S  ");
-        recipe.setIngredient('I', Material.IRON_INGOT);
+        recipe.setIngredient('I', Material.IRON_BLOCK);
         recipe.setIngredient('S', Material.STICK);
 
         return recipe;
