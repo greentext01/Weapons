@@ -1,24 +1,53 @@
 package com.gmail.oaudetyang.weapons;
 
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-public class Mace implements Listener {
-    ItemStack m_mace;
-    public Mace(ItemStack mace) { m_mace = mace; }
+import java.util.ArrayList;
+import java.util.List;
+
+public class Mace extends Item implements Listener {
+    public Mace() {
+        super(Material.IRON_SWORD);
+        setModelData(1310418);
+        setAttribute(WAttr.ATTACKSPEED, 1);
+        setAttribute(WAttr.ATTACKDAMAGE, 8);
+        setDisplayName("Mace");
+        hideAttributes();
+        List<String> lore = new ArrayList<>();
+        lore.add("When in main hand:");
+        lore.add("1 Attack Speed");
+        lore.add("8 Attack Damage");
+        lore.add("Stuns and gives nausea to enemy for 3 seconds");
+        setLore(lore);
+        setMeta();
+
+        NamespacedKey key = new NamespacedKey(getPlugin(), "mace");
+        ShapedRecipe recipe = new ShapedRecipe(key, getItemStack());
+        recipe.shape("  I",
+                     " S ",
+                     "S  ");
+        recipe.setIngredient('I', Material.IRON_BLOCK);
+        recipe.setIngredient('S', Material.STICK);
+        getPlugin().getServer().getPluginManager().registerEvents(this, getPlugin());
+
+        setRecipe(recipe, key);
+    }
 
     @EventHandler
     public void onEntityDamage(EntityDamageByEntityEvent event) {
         if(event.getDamager() instanceof Player) {
             if(event.getEntity() instanceof LivingEntity) {
                 Player damager = (Player)event.getDamager();
-                if(m_mace.equals(damager.getInventory().getItemInMainHand())) {
+                if(getItemStack().equals(damager.getInventory().getItemInMainHand())) {
                     LivingEntity victim = (LivingEntity) event.getEntity();
                     victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 5));
                     victim.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 60, 1));
