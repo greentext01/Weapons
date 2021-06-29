@@ -19,22 +19,22 @@ public class Mace extends Item implements Listener {
         super(Material.IRON_SWORD);
         setModelData(1310418);
         setAttribute(WAttr.ATTACKSPEED, 1);
-        setAttribute(WAttr.ATTACKDAMAGE, 8);
+        setAttribute(WAttr.ATTACKDAMAGE, 4);
         setDisplayName("Mace");
         hideAttributes();
         List<String> lore = new ArrayList<>();
         lore.add("When in main hand:");
         lore.add("1 Attack Speed");
-        lore.add("8 Attack Damage");
-        lore.add("Stuns and gives nausea to enemy for 3 seconds");
+        lore.add("4 Attack Damage");
+        lore.add("Stuns and enemy for 1 second");
         setLore(lore);
         setMeta();
 
         NamespacedKey key = new NamespacedKey(getPlugin(), "mace");
         ShapedRecipe recipe = new ShapedRecipe(key, getItemStack());
-        recipe.shape("  I",
+        recipe.shape(" I ",
                      " S ",
-                     "S  ");
+                     " S ");
         recipe.setIngredient('I', Material.IRON_BLOCK);
         recipe.setIngredient('S', Material.STICK);
         getPlugin().getServer().getPluginManager().registerEvents(this, getPlugin());
@@ -49,8 +49,7 @@ public class Mace extends Item implements Listener {
                 Player damager = (Player)event.getDamager();
                 if(getItemStack().equals(damager.getInventory().getItemInMainHand())) {
                     LivingEntity victim = (LivingEntity) event.getEntity();
-                    victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 5));
-                    victim.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 60, 1));
+                    victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 20, 5));
                 }
             }
         }

@@ -1,14 +1,12 @@
 package com.gmail.oaudetyang.weapons;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
@@ -36,7 +34,7 @@ public class Item {
 
     protected void setDisplayName(String name) {
         m_meta = m_item.getItemMeta();
-        m_meta.setDisplayName(name);
+        m_meta.setDisplayName(ChatColor.RESET + name);
         m_item.setItemMeta(m_meta);
     }
 
@@ -89,5 +87,9 @@ public class Item {
 
     protected ItemStack getItemStack() {
         return m_item;
+    }
+
+    protected Recipe getRecipe() {
+        return m_recipe;
     }
 }

@@ -34,6 +34,10 @@ public final class Weapons extends JavaPlugin {
         new ProjectileHit();
         new JoinEvent();
         new BatteringRam();
+        new Catapult();
+        new CatapultProj();
+        new BearTrap();
+        new Mystery();
     }
 
     @Override

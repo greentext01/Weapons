@@ -32,8 +32,6 @@ public class Lance extends Item implements Listener {
         lore.add("---------------");
         lore.add("0-35 Attack damage if riding on a horse, depending on its speed");
         lore.add("2 Attack damage if not riding on a horse");
-        lore.add("---------------");
-        lore.add("2 Attack damage if not riding on a horse");
         setLore(lore);
         setMeta();
 

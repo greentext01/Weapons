@@ -11,18 +11,26 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
+
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
+import static org.bukkit.Material.AIR;
 import static org.bukkit.Material.BELL;
 
 public class BatteringRam extends Item implements Listener {
+    private HashMap<Location, Integer> breakMap = new HashMap<>();
+    private HashMap<UUID, Long> timeMap = new HashMap<>();
+
     public BatteringRam() {
         super(BELL);
         setModelData(1263912);
@@ -33,7 +41,6 @@ public class BatteringRam extends Item implements Listener {
         lore.add("Cobblestone: 6 hits");
         lore.add("Iron door: 5 hits");
         lore.add("Sand: 1 hit");
-        lore.add("There is a math formula to calculate the resistance of a block but it's too long to put on the lore -_-");
         setLore(lore);
         setMeta();
 
@@ -42,26 +49,23 @@ public class BatteringRam extends Item implements Listener {
         recipe.shape("PPP",
                      "LLI",
                      "PPP");
-        recipe.setIngredient('P', Material.DARK_OAK_PLANKS);
-        recipe.setIngredient('L', Material.BIRCH_LOG);
+        recipe.setIngredient('P', Material.OAK_PLANKS);
+        recipe.setIngredient('L', Material.OAK_LOG);
         recipe.setIngredient('I', Material.IRON_BLOCK);
 
         setRecipe(recipe, key);
 
-        Weapons.getPlugin(Weapons.class).getServer().getPluginManager().
-                registerEvents(this, Weapons.getPlugin(Weapons.class));
+        getPlugin().getServer().getPluginManager().
+                registerEvents(this, getPlugin());
     }
 
     @EventHandler
-    public void onEntityDamage(EntityDamageByEntityEvent event) {
+    public void onEntityDeath(EntityDeathEvent event) {
         if(event.getEntity().getType().equals(EntityType.ARMOR_STAND)) {
             ArmorStand as = (ArmorStand) event.getEntity();
-            if(as.getEquipment().getHelmet().getType().equals(BELL)) {
-                if(as.getEquipment().getHelmet().getItemMeta().getCustomModelData() == 1263912) {
-                    as.setMarker(true);
-                    as.getWorld().dropItem(as.getLocation(), getItemStack());
-                    as.setHealth(0);
-                }
+            if(as.hasMetadata("batteringram")) {
+                event.getDrops().clear();
+                as.getWorld().dropItem(as.getLocation(), getItemStack());
             }
         }
     }
@@ -104,6 +108,9 @@ public class BatteringRam extends Item implements Listener {
                     as.setRotation(rotation, 0);
                     as.getEquipment().setHelmet(getItemStack());
 
+                    as.setInvisible(true);
+
+                    as.setMetadata("batteringram", new FixedMetadataValue(getPlugin(), "batteringram"));
                     event.getItemInHand().setAmount(event.getItemInHand().getAmount() - 1);
                 }
             }
@@ -116,36 +123,57 @@ public class BatteringRam extends Item implements Listener {
             ArmorStand as = (ArmorStand) event.getRightClicked();
             if(as.getEquipment().getHelmet().getType().equals(Material.BELL)) {
                 if(as.getEquipment().getHelmet().getItemMeta().getCustomModelData() == 1263912) {
-                    Vector direction = as.getLocation().getDirection();
-                    for(int i = 5; i < 8; i++) {
-                        for(int j = 0; j < 2; j++) {
-                            Block block = as.getLocation().add(direction.clone().
-                                    multiply(i)).add(0, j, 0).getBlock();
-                            if(!block.hasMetadata("weaponsBlockBreak")) {
-                                int durability;
-                                float blastResistance = block.getType().getBlastResistance();
-                                if(blastResistance < 1) {
-                                    durability = 1;
-                                } else if(blastResistance > 1200) {
-                                    return;
-                                } else if(blastResistance >= 10) {
-                                    durability = 10;
-                                } else {
-                                    durability = Math.round(blastResistance);
-                                }
-
-                                // The system uses the length of the array
-                                // I feel so f'ing smart
-
-                                for(int k = 0; k < durability; k++) {
-                                    block.setMetadata("weaponsBlockBreak",
-                                            new FixedMetadataValue(getPlugin(), "weaponsBlockBreak"));
-                                }
-                            } else if(!block.getMetadata("weaponsBlockBreak").isEmpty()) {
-                                int value = block.getMetadata("weaponsBlockBreak").size();
-                                block.getMetadata("weaponsBlockBreak").remove(0);
+                    if(event.getPlayer().isSneaking()) {
+                        as.remove();
+                        as.getWorld().dropItem(as.getLocation(), getItemStack());
+                    } else {
+                        if (timeMap.get(event.getPlayer().getUniqueId()) != null) {
+                            if (System.currentTimeMillis() - timeMap.get(event.getPlayer().getUniqueId()) >= 1000) {
+                                timeMap.replace(event.getPlayer().getUniqueId(), System.currentTimeMillis());
                             } else {
-                                block.setType(Material.AIR);
+                                return;
+                            }
+                        } else {
+                            timeMap.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
+                        }
+
+                        Vector direction = as.getLocation().getDirection();
+                        Vector tempDir = direction.clone();
+                        double temp = direction.getZ();
+                        tempDir.setZ(direction.getX());
+                        tempDir.setX(temp);
+
+                        for (int i = 2; i < 5; i++) {
+                            Vector[] blocks = {tempDir, new Vector(0, 0, 0), tempDir.clone().multiply(-1)};
+
+                            for(Vector currBlock : blocks) {
+                                for(int j = 0; j < 3; j++) {
+                                    Block block = as.getLocation().add(currBlock).add(direction.clone().multiply(i)).add(new Vector(0, j, 0)).getBlock();
+                                    Integer damage;
+                                    if ((damage = breakMap.get(block.getLocation())) != null) {
+                                        if (damage - 1 == 0) {
+                                            breakMap.remove(block.getLocation());
+                                            block.breakNaturally(new ItemStack(Material.DIAMOND_PICKAXE));
+                                        } else {
+                                            breakMap.replace(block.getLocation(), damage - 1);
+                                        }
+                                    } else {
+                                        int durability;
+                                        float blastResistance = block.getType().getBlastResistance();
+                                        if (blastResistance <= 1) {
+                                            block.setType(AIR);
+                                            continue;
+                                        } else if (blastResistance > 1200) {
+                                            return;
+                                        } else if (blastResistance >= 10) {
+                                            durability = 20;
+                                        } else {
+                                            durability = Math.round(blastResistance / 2);
+                                        }
+
+                                        breakMap.put(block.getLocation(), durability);
+                                    }
+                                }
                             }
                         }
                     }
